@@ -161,8 +161,8 @@ class RerankerEvaluator:
                  examples: List[RelevanceExample]) -> List[MetricAccumulator]:
         metrics = [cls() for cls in self.metrics]
         for example in tqdm(examples, disable=not self.use_tqdm):
-            scores = [x.score for x in self.reranker.rerank(example.query,
-                                                            example.documents)]
+            example.documents = self.reranker.rerank(example.query, example.documents)
+            scores = map(lambda x: x.score, example.documents)
             if self.writer is not None:
                 self.writer.write(scores, example)
             for metric in metrics:
