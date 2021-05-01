@@ -23,8 +23,16 @@ class Writer:
     def write(self, scores: List[float], example: RelevanceExample):
         pass
 
+    @abc.abstractmethod
+    def write(self, example: RelevanceExample):
+        pass
+
 
 class MsMarcoWriter(Writer):
+    def write(self, example: RelevanceExample):
+        for ct, doc in enumerate(example.documents):
+            self.write_line(f"{example.query.id}\t{doc.metadata['docid']}\t{ct+1}")
+
     def write(self, scores: List[float], example: RelevanceExample):
         doc_scores = sorted(list(zip(example.documents, scores)),
                             key=lambda x: x[1], reverse=True)
@@ -33,6 +41,10 @@ class MsMarcoWriter(Writer):
 
 
 class TrecWriter(Writer):
+    def write(self, example: RelevanceExample):
+        for ct, doc in enumerate(example.documents):
+            self.write_line(f"{example.query.id}\t{doc.metadata['docid']}\t{ct+1}")
+
     def write(self, scores: List[float], example: RelevanceExample):
         doc_scores = sorted(list(zip(example.documents, scores)),
                             key=lambda x: x[1], reverse=True)

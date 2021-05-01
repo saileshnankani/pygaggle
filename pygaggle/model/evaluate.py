@@ -164,7 +164,7 @@ class RerankerEvaluator:
             example.documents = self.reranker.rerank(example.query, example.documents)
             scores = map(lambda x: x.score, example.documents)
             if self.writer is not None:
-                self.writer.write(scores, example)
+                self.writer.write(example)
             for metric in metrics:
                 metric.accumulate(scores, example)
         return metrics
