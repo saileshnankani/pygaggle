@@ -20,27 +20,17 @@ class Writer:
             self.f.write(f"{text}\n")
 
     @abc.abstractmethod
-    def write(self, example: RelevanceExample, scores: List[float] = None):
+    def write(self, example: RelevanceExample):
         pass
 
 
 class MsMarcoWriter(Writer):
-    def write(self, example: RelevanceExample, scores: List[float] = None):
-        if scores is None:
-            for ct, doc in enumerate(example.documents):
-                self.write_line(f"{example.query.id}\t{doc.metadata['docid']}\t{ct+1}")
-            return
-        doc_scores = sorted(list(zip(example.documents, scores)),
-                            key=lambda x: x[1], reverse=True)
-        for ct, (doc, score) in enumerate(doc_scores):
+    def write(self, example: RelevanceExample):
+        for ct, doc in enumerate(example.documents):
             self.write_line(f"{example.query.id}\t{doc.metadata['docid']}\t{ct+1}")
 
 
 class TrecWriter(Writer):
-    def write(self, example: RelevanceExample, scores: List[float] = None):
-        if scores is None:
-            for ct, doc in enumerate(example.documents):
-                self.write_line(f"{example.query.id}\tQ0\t{doc.metadata['docid']}\t{ct+1}\t{doc.score}\t{self.tag}")
-                return
-        doc_scores = sorted(list(zip(example.documents, scores)),
-                            key=lambda x: x[1], reverse=True)
+    def write(self, example: RelevanceExample):
+        for ct, doc in enumerate(example.documents):
+            self.write_line(f"{example.query.id}\tQ0\t{doc.metadata['docid']}\t{ct+1}\t{doc.score}\t{self.tag}")

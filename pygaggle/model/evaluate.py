@@ -179,11 +179,12 @@ class RerankerEvaluator:
         for example in tqdm(examples, disable=not self.use_tqdm):
             segment_group = segment_processor.segment(example.documents, seg_size, stride)
             segment_group.segments = self.reranker.rerank(example.query, segment_group.segments)
-            doc_scores = [x.score for x in segment_processor.aggregate(example.documents,
-                                                                       segment_group,
-                                                                       aggregate_method)]
+            example.documents = segment_processor.aggregate(example.documents,
+                                                            segment_group,
+                                                            aggregate_method)
+            doc_scores = [x.score for x in example.documents]
             if self.writer is not None:
-                self.writer.write(example, doc_scores)
+                self.writer.write(example)
             for metric in metrics:
                 metric.accumulate(doc_scores, example)
         return metrics
@@ -215,13 +216,12 @@ class DuoRerankerEvaluator:
             scores.append(np.array([x.score for x in mono_out]))
         for ct, texts in tqdm(enumerate(mono_texts), total=len(mono_texts), disable=not self.use_tqdm):
             duo_in = list(map(lambda x: x[1], texts))
-            duo_scores = [x.score for x in self.duo_reranker.rerank(examples[ct].query, duo_in)]
-
-            scores[ct][list(map(lambda x: x[0], texts))] = duo_scores
+            examples[ct].documents = self.duo_reranker.rerank(examples[ct].query, duo_in)
+            doc_scores = [x.score for x in examples[ct].documents]
             if self.writer is not None:
-                self.writer.write(examples[ct], list(scores[ct]))
+                self.writer.write(examples[ct])
             for metric in metrics:
-                metric.accumulate(list(scores[ct]), examples[ct])
+                metric.accumulate(doc_scores, examples[ct])
         return metrics
 
     def evaluate_by_segments(self,
@@ -234,11 +234,12 @@ class DuoRerankerEvaluator:
         for example in tqdm(examples, disable=not self.use_tqdm):
             segment_group = segment_processor.segment(example.documents, seg_size, stride)
             segment_group.segments = self.reranker.rerank(example.query, segment_group.segments)
-            doc_scores = [x.score for x in segment_processor.aggregate(example.documents,
-                                                                       segment_group,
-                                                                       aggregate_method)]
+            example.documents = segment_processor.aggregate(example.documents,
+                                                            segment_group,
+                                                            aggregate_method)
+            doc_scores = [x.score for x in examples.documents]
             if self.writer is not None:
-                self.writer.write(example, doc_scores)
+                self.writer.write(example)
             for metric in metrics:
                 metric.accumulate(doc_scores, example)
         return metrics
