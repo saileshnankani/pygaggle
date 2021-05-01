@@ -164,7 +164,7 @@ class RerankerEvaluator:
             example.documents = self.reranker.rerank(example.query, example.documents)
             scores = [x.score for x in example.documents]
             if self.writer is not None:
-                self.writer.write(scores, example)
+                self.writer.write(example)
             for metric in metrics:
                 metric.accumulate(scores, example)
         return metrics
@@ -183,7 +183,7 @@ class RerankerEvaluator:
                                                                        segment_group,
                                                                        aggregate_method)]
             if self.writer is not None:
-                self.writer.write(doc_scores, example)
+                self.writer.write(example, doc_scores)
             for metric in metrics:
                 metric.accumulate(doc_scores, example)
         return metrics
@@ -219,7 +219,7 @@ class DuoRerankerEvaluator:
 
             scores[ct][list(map(lambda x: x[0], texts))] = duo_scores
             if self.writer is not None:
-                self.writer.write(list(scores[ct]), examples[ct])
+                self.writer.write(examples[ct], list(scores[ct]))
             for metric in metrics:
                 metric.accumulate(list(scores[ct]), examples[ct])
         return metrics
@@ -238,7 +238,7 @@ class DuoRerankerEvaluator:
                                                                        segment_group,
                                                                        aggregate_method)]
             if self.writer is not None:
-                self.writer.write(doc_scores, example)
+                self.writer.write(example, doc_scores)
             for metric in metrics:
                 metric.accumulate(doc_scores, example)
         return metrics
