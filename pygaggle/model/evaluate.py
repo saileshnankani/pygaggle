@@ -60,8 +60,7 @@ class TopkMixin(TruncatingMixin):
     top_k: int = None
 
     def truncated_rels(self, scores: List[float]) -> np.ndarray:
-        rel_idxs = sorted(list(enumerate(scores)),
-                          key=lambda x: x[1], reverse=True)[self.top_k:]
+        rel_idxs = list(enumerate(scores))[self.top_k:]
         scores = np.array(scores)
         scores[[x[0] for x in rel_idxs]] = 0
         return scores
@@ -119,8 +118,7 @@ class RecallAt1000Metric(TopkMixin, RecallAccumulator):
 @register_metric('mrr')
 class MrrMetric(MeanAccumulator):
     def accumulate(self, scores: List[float], gold: RelevanceExample):
-        scores = sorted(list(enumerate(scores)),
-                        key=lambda x: x[1], reverse=True)
+        scores = list(enumerate(scores))
         rr = next((1 / (rank_idx + 1) for rank_idx, (idx, _) in
                    enumerate(scores) if gold.labels[idx]), 0)
         self.scores.append(rr)
@@ -129,8 +127,7 @@ class MrrMetric(MeanAccumulator):
 @register_metric('mrr@10')
 class MrrAt10Metric(MeanAccumulator):
     def accumulate(self, scores: List[float], gold: RelevanceExample):
-        scores = sorted(list(enumerate(scores)), key=lambda x: x[1],
-                        reverse=True)
+        scores = list(enumerate(scores))
         rr = next((1 / (rank_idx + 1) for rank_idx, (idx, _) in
                    enumerate(scores) if (gold.labels[idx] and rank_idx < 10)),
                   0)
@@ -290,11 +287,11 @@ class ReaderEvaluator:
 
         return ems
 
-    @staticmethod
+    @ staticmethod
     def exact_match_score(prediction, ground_truth):
         return ReaderEvaluator._normalize_answer(prediction) == ReaderEvaluator._normalize_answer(ground_truth)
 
-    @staticmethod
+    @ staticmethod
     def _normalize_answer(s):
         def remove_articles(text):
             return re.sub(r'\b(a|an|the)\b', ' ', text)
