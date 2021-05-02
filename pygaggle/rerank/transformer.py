@@ -72,7 +72,6 @@ class MonoT5(Reranker):
             for doc, score in zip(batch.documents, batch_log_probs):
                 doc.score = score
 
-        texts.sort(key=lambda x: x.score, reverse=True)
         return texts
 
 
@@ -125,8 +124,6 @@ class DuoT5(Reranker):
         for text in texts:
             text.score = scores[text.metadata['docid']]
 
-        texts.sort(key=lambda x: x.score, reverse=True)
-
         return texts
 
 
@@ -174,8 +171,6 @@ class UnsupervisedTransformerReranker(Reranker):
                 if text.score != max_score:
                     text.score = max_score - 10000
 
-        texts.sort(key=lambda x: x.score, reverse=True)
-
         return texts
 
 
@@ -215,11 +210,9 @@ class MonoBERT(Reranker):
             output, = self.model(input_ids, token_type_ids=tt_ids, return_dict=False)
             if output.size(1) > 1:
                 text.score = torch.nn.functional.log_softmax(
-                                output, 1)[0, -1].item()
+                    output, 1)[0, -1].item()
             else:
                 text.score = output.item()
-
-        texts.sort(key=lambda x: x.score, reverse=True)
 
         return texts
 
@@ -252,7 +245,5 @@ class QuestionAnsweringTransformerReranker(Reranker):
             smax_val, smax_idx = start_scores.max(0)
             emax_val, emax_idx = end_scores.max(0)
             text.score = max(smax_val.item(), emax_val.item())
-
-        texts.sort(key=lambda x: x.score, reverse=True)
 
         return texts
